@@ -5,47 +5,47 @@ import copy
 
 class Tree:
     
-    def __init__(self, initial_state, goal_state, operators, Algor):
-        self.initial_state = initial_state
-        self.goal_state = goal_state
-        self.operators = operators
-        self.Algor = Algor
-        self.explored = set()
-        self.frontier = PriorityQueue()
-        self.frontierCheck = set()
-        self.maxQueueSize = 0
-        self.NodesExpanded = 0
+    def __init__(self, initial_state, goal_state, operators, Algor):    #all variables passed in are necessary
+        self.initial_state = initial_state  # so the code knows where to start
+        self.goal_state = goal_state        # so the code knows what state it's looking for and knows when to cease searching
+        self.operators = operators          # directions the blank space can move
+        self.Algor = Algor                  # used to identify which algorithm is being used
+        self.explored = set()               # hash table used to store what nodes have been explored by the algorithm already
+        self.frontier = PriorityQueue()     # priority queue organized by cost, so the algorithm which node to explore next
+        self.frontierCheck = set()          # used to prevent repeated states in the frontier priority queue
+        self.maxQueueSize = 0               # keeps track of the maximum queue size at any point in the search
+        self.NodesExpanded = 0              # keeps track of how many nodes are expanded in the algorithm
 
     def validOps(self, currNode): # checks to see what movements are possible
         currPos = ny.where(currNode.current_state == 0)
 
         possOps = ny.empty([0,0])
 
-        if (currPos[0]/3 >= 1):
+        if (currPos[0]/3 >= 1): # checks if blank space can move up
             possOps = ny.append(possOps, [1])
         
-        if (currPos[0]%3 < 2):
+        if (currPos[0]%3 < 2): # checks if blank space can move right
             possOps = ny.append(possOps, [2])
 
-        if (currPos[0]%3 > 0):
+        if (currPos[0]%3 > 0): # checks if blank space can move left
             possOps = ny.append(possOps, [3])
         
-        if (currPos[0]/3 < 2 and currPos[0]/3 >= 0):
+        if (currPos[0]/3 < 2 and currPos[0]/3 >= 0): # checks if blank space can move down
             possOps = ny.append(possOps, [4])
         
         return possOps
 
-    def addToExplored(self, exploredState):
+    def addToExplored(self, exploredState): # adds node to explored state
         self.explored.add(exploredState)
         self.NodesExpanded += 1
 
-    def addToFrontier(self, frontierNode):
+    def addToFrontier(self, frontierNode):  # adds node to frontier
         self.frontier.put((frontierNode))
         if (self.frontier.qsize() > self.maxQueueSize):
             self.maxQueueSize = self.frontier.qsize()
         self.frontierCheck.add(tuple(frontierNode.current_state))
 
-    def validTransition(self, currentNode): # checks to see what nodes have not been explored yet of the possible transitions from validOps and adds them to the frontier priority queue
+    def validTransition(self, currentNode): # checks to see what nodes have not been explored yet of the possible transitions from validOps
         possOps = self.validOps(currentNode)
 
         validOps = ny.empty([0,0])
@@ -133,7 +133,7 @@ class Tree:
 
         return validOps
 
-    def MisplacedCost(self, current_state):
+    def MisplacedCost(self, current_state): # computes h(n) for Misplaced Tile Heuristic
         numMisplaced = 0
 
         currIndex = ny.where(current_state == 0)
@@ -146,7 +146,7 @@ class Tree:
         
         return numMisplaced
 
-    def EuclideanCost(self, current_state):
+    def EuclideanCost(self, current_state): # computes h(n) for Euclidean Distance Heuristic
         EuclideanCost = 0
 
         currIndex = 0
@@ -165,7 +165,7 @@ class Tree:
 
         return EuclideanCost
     
-    def UniformCS(self, current_Node):
+    def UniformCS(self, current_Node):  #Passes in root node and starts the Uniform Cost Search Algorithm, checking to see if heuristics need to be computed as well
         while True:
             if(self.frontier.empty()):
                 return -1
@@ -209,15 +209,17 @@ class Tree:
                     childNode.gn = USTNode.gn+1
                     childNode.hn = EuclideanC
 
+                # checks to see if repeated state is already in frontier
                 if (tuple(childState) in self.frontierCheck):
                     {}
                 else:
+                    # pushes childNode to frontier
                     self.addToFrontier(childNode)
                 # if tuple(self.goal_state) in self.explored:
 
 
 
-    def movedState(self, current_state, operation):
+    def movedState(self, current_state, operation): # computes the state that would be created if the blank space were to move in the passed in direction
         newState = current_state
 
         currIndex = ny.where(current_state == 0)
@@ -274,7 +276,7 @@ class Tree:
         print("   Expanding this node...")
         print()
 
-    def printTrace(self, curr_Node):
+    def printTrace(self, curr_Node):    # prints trace from initial node to goal node
         while curr_Node != None:
             print("The best state to expand with g(n) =", end =" ") 
             print(curr_Node.gn, end =" ")
@@ -298,7 +300,7 @@ class Tree:
             curr_Node = curr_Node.parent_node
         
 
-class Node:
+class Node:     # node class used to keep track of states, cost, and parent node values
     def __init__(self, current_state, parent_node, cost):
         self.current_state = current_state
         self.parent_node = parent_node
@@ -319,7 +321,7 @@ class Node:
             return selfGN < otherGN
 
 
-def main():
+def main(): # calls above tree functions and builds interface for user
     print("Welcome to 862013504 8 puzzle solver.")
     print("Type \"1\" to use a default puzzle, or \"2\" to enter your own puzzle. ")
 
@@ -367,7 +369,7 @@ def main():
 
     if (whichAlg == 2):
         rootNode.hn = initTree.MisplacedCost(rootNode.current_state)
-        
+
     elif (whichAlg == 3):
         rootNode.hn = initTree.EuclideanCost(rootNode.current_state)
 
